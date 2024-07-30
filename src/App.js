@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { 
   TextField, Button, Container, Typography, Box, IconButton,
   Paper, Grid, List, ListItem, ListItemText, ListItemSecondaryAction
@@ -28,6 +28,8 @@ const CVBuilder = () => {
     ],
     interests: [''],
   });
+
+  const fileInputRef = useRef(null);
 
   const handleChange = useCallback((section, index, field, value) => {
     setCvData(prev => {
@@ -242,25 +244,68 @@ const CVBuilder = () => {
     `;
   }, [cvData]);
 
-  const downloadCV = useCallback(() => {
-    const html = generateHTML();
-    const blob = new Blob([html], { type: 'text/html' });
+  const downloadFile = (content, fileName, contentType) => {
+    const blob = new Blob([content], { type: contentType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${cvData.name.replace(/\s+/g, '_')}_CV.html`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [cvData.name, generateHTML]);
+  };
+
+  const downloadCV = useCallback(() => {
+    const html = generateHTML();
+    const json = JSON.stringify(cvData, null, 2);
+    const baseName = cvData.name.replace(/\s+/g, '_');
+  
+    downloadFile(html, `${baseName}_CV.html`, 'text/html');
+    downloadFile(json, `${baseName}_CV_data.json`, 'application/json');
+  }, [cvData, generateHTML]);
+
+  const importJSON = useCallback((event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          setCvData(importedData);
+        } catch (error) {
+          console.error('Error parsing JSON:', error);
+          alert('Error importing data. Please make sure the file is a valid JSON.');
+        }
+      };
+      reader.readAsText(file);
+    }
+  }, []);
 
   return (
     <Container maxWidth="md">
       <Box my={4}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          CV Builder
-        </Typography>
+        <Box display='flex' justifyContent='space-between' mb={2}>
+          <Typography variant="h4" component="h1">
+            CV Builder
+          </Typography>
+          <Button
+            variant="outlined"
+            size='small'
+            color="info"
+            onClick={() => fileInputRef.current.click()}
+          >
+            Import Data (JSON)
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            accept=".json"
+            onChange={importJSON}
+          />
+        </Box>
+
 
         <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
           <Typography variant="h5" gutterBottom>Personal Information</Typography>
@@ -458,12 +503,12 @@ const CVBuilder = () => {
             Add Interest
           </Button>
         </Paper>
-
+      
         <Button
           variant="contained"
           color="primary"
           onClick={downloadCV}
-          sx={{ mt: 2 }}
+          sx={{ mr: 2 }}
         >
           Download CV
         </Button>
