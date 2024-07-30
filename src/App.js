@@ -107,7 +107,6 @@ const CVBuilder = () => {
             padding: 1rem;
             justify-content: flex-start;
             border: 2px solid gold;
-            page-break-inside: avoid;
           }
           #contact {
             display: flex;
@@ -130,15 +129,12 @@ const CVBuilder = () => {
             justify-content: flex-start;
             margin-top: 0;
           }
+          .no-break {
+            page-break-inside: avoid;
+          }
           h2 {
             margin-top: 0;
             margin-bottom: .25rem;
-          }
-          .experience > div {
-            margin-top: .5rem;
-          }
-          .experience div > span {
-            font-weight: bold;
           }
           .interests > div,
           #skills > div,
@@ -185,9 +181,44 @@ const CVBuilder = () => {
           #skills, .experience {
             page-break-before: auto;
           }
-          /* Prevent page breaks inside Key Skills and Professional Experience sections */
-          #skills, .experience {
-            page-break-inside: avoid;
+          @media print {
+            .no-break {
+              page-break-inside: avoid;
+              padding-top: 20px;
+            }
+            
+            .no-break > *:first-child {
+              margin-top: 0;
+            }
+            
+            @page {
+              margin-top: 20px;
+            }
+            
+            .experience > div {
+              margin-bottom: 20px;
+            }
+            
+            body {
+              font-size: 12pt;
+            }
+            
+            h2 {
+              margin-top: 20px;
+            }
+          }
+
+          .experience > div {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 15px;
+          }
+
+          .experience div > span {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
           }
         </style>
       </head>
@@ -217,7 +248,7 @@ const CVBuilder = () => {
         <section class="experience">
           <h2>Professional Experience</h2>
           ${cvData.experience.map(exp => `
-            <div>
+            <div class="no-break">
               <span>${exp.title}</span>
               <div class="mt-2 mb-1">${exp.period}; ${exp.company}</div>
               <ul>
@@ -258,10 +289,15 @@ const CVBuilder = () => {
 
   const downloadCV = useCallback(() => {
     const html = generateHTML();
-    const json = JSON.stringify(cvData, null, 2);
     const baseName = cvData.name.replace(/\s+/g, '_');
   
     downloadFile(html, `${baseName}_CV.html`, 'text/html');
+  }, [cvData, generateHTML]);
+
+  const exportJSON = useCallback(() => {
+    const json = JSON.stringify(cvData, null, 2);
+    const baseName = cvData.name.replace(/\s+/g, '_');
+  
     downloadFile(json, `${baseName}_CV_data.json`, 'application/json');
   }, [cvData, generateHTML]);
 
@@ -504,14 +540,23 @@ const CVBuilder = () => {
           </Button>
         </Paper>
       
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={downloadCV}
-          sx={{ mr: 2 }}
-        >
-          Download CV
-        </Button>
+        <Box display='flex' mt={4}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={downloadCV}
+            sx={{ mr: 2 }}
+          >
+            Download CV
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={exportJSON}
+          >
+            Export Data (JSON)
+          </Button>
+        </Box>
       </Box>
     </Container>
   );
