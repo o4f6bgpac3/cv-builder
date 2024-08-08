@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
@@ -24,7 +25,8 @@ func main() {
 	r := gin.Default()
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "https://your-lightsail-domain.com"}
+	allowedOrigins := strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost:3000"), ",")
+	config.AllowOrigins = allowedOrigins
 	config.AllowMethods = []string{"GET", "POST", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type"}
 	r.Use(cors.New(config))
@@ -42,10 +44,7 @@ func main() {
 		}
 	})
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	port := getEnv("PORT", "8080")
 	log.Printf("Server starting on port %s", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
@@ -67,7 +66,8 @@ func generatePDF(c *gin.Context) {
 	}
 
 	// Send HTML to Gotenberg
-	gotenbergURL := "http://gotenberg:3000/forms/chromium/convert/html"
+	gotenbergURL := getEnv("GOTENBERG_URL", "http://gotenberg:3000")
+	gotenbergEndpoint := fmt.Sprintf("%s/forms/chromium/convert/html", gotenbergURL)
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
 
@@ -93,7 +93,7 @@ func generatePDF(c *gin.Context) {
 		return
 	}
 
-	gotenbergReq, err := http.NewRequest("POST", gotenbergURL, payload)
+	gotenbergReq, err := http.NewRequest("POST", gotenbergEndpoint, payload)
 	if err != nil {
 		log.Printf("Error creating request for Gotenberg: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request for Gotenberg"})
@@ -137,4 +137,11 @@ func generatePDF(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send PDF to client"})
 		return
 	}
+}
+
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }
