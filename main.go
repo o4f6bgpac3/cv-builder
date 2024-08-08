@@ -25,10 +25,10 @@ func main() {
 	r := gin.Default()
 
 	config := cors.DefaultConfig()
-	allowedOrigins := strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost:3000"), ",")
+	allowedOrigins := strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost"), ",")
 	config.AllowOrigins = allowedOrigins
 	config.AllowMethods = []string{"GET", "POST", "OPTIONS"}
-	config.AllowHeaders = []string{"Origin", "Content-Type"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept"}
 	r.Use(cors.New(config))
 
 	// Serve static files from the build directory

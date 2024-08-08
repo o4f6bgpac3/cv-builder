@@ -1,2 +1,4 @@
 .idea
 cv-builder
+.env*
+!.env.example

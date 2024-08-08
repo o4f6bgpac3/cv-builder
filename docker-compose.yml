@@ -1,17 +1,50 @@
 version: '3.8'
+
 services:
+  traefik:
+    image: traefik:v2.5
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`localhost`) && PathPrefix(`/dashboard`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+
   app:
     build: .
-    ports:
-      - "8080:8080"
     environment:
+      - GIN_MODE=debug
       - PORT=8080
-      - API_URL=http://localhost:8080
+      - API_URL=http://localhost
       - GOTENBERG_URL=http://gotenberg:3000
+      - ALLOWED_ORIGINS=http://localhost
+      - CORS_ALLOW_ORIGINS=http://localhost
+      - CORS_ALLOW_METHODS=GET,POST,OPTIONS
+      - CORS_ALLOW_HEADERS=Origin,Content-Type,Accept
+      - CORS_EXPOSE_HEADERS=Content-Length,Content-Disposition
+      - CORS_ALLOW_CREDENTIALS=false
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`localhost`)"
+      - "traefik.http.routers.app.entrypoints=web"
+      - "traefik.http.services.app.loadbalancer.server.port=8080"
+      - "traefik.http.routers.app-api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.app-api.entrypoints=web"
+      - "traefik.http.routers.app-api.service=app"
     depends_on:
       - gotenberg
 
   gotenberg:
     image: gotenberg/gotenberg:7
-    ports:
-      - "3000:3000"
+    labels:
+      - "traefik.enable=false"
