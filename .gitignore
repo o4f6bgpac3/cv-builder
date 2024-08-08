@@ -2,3 +2,4 @@
 cv-builder
 .env*
 !.env.example
+.DS_Store
