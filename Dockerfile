@@ -11,13 +11,13 @@ RUN go mod download
 
 # Copy and build the application
 COPY *.go ./
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-w -s" -o /cv-builder
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags="-w -s" -o /cv-builder
 
 # Frontend build stage
-FROM node:14 AS frontend-builder
+FROM node:18 AS frontend-builder
 WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --only=production
+RUN npm install --only=production
 COPY frontend/ ./
 RUN npm run build
 
