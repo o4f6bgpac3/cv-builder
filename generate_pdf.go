@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -87,16 +88,9 @@ func generatePDF(c *gin.Context) {
 		return
 	}
 
-	// Set headers for PDF download
-	c.Header("Content-Disposition", "attachment; filename=cv.pdf")
-	c.Header("Content-Type", "application/pdf")
-	c.Header("Content-Length", fmt.Sprintf("%d", len(pdfBytes)))
+	// Encode the PDF as base64
+	pdfBase64 := base64.StdEncoding.EncodeToString(pdfBytes)
 
-	// Write PDF bytes to response
-	_, err = c.Writer.Write(pdfBytes)
-	if err != nil {
-		log.Printf("Error writing PDF to response: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send PDF to client"})
-		return
-	}
+	// Return the base64 encoded PDF
+	c.JSON(http.StatusOK, gin.H{"pdf": pdfBase64})
 }

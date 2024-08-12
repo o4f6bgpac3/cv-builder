@@ -109,8 +109,22 @@ const CVBuilder = () => {
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        downloadFile(blob, 'cv.pdf', 'application/pdf');
+        const data = await response.json();
+        const pdfContent = `data:application/pdf;base64,${data.pdf}`;
+        const baseName = cvData.name.replace(/\s+/g, '_');
+
+        // For desktop browsers
+        if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+          const link = document.createElement('a');
+          link.href = pdfContent;
+          link.download = `${baseName}_CV.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          // For mobile browsers
+          window.open(pdfContent, '_blank');
+        }
       } else {
         console.error('Failed to generate PDF:', response.statusText);
         alert('Failed to generate PDF. Please try again.');
@@ -119,7 +133,7 @@ const CVBuilder = () => {
       console.error('Error generating PDF:', error);
       alert('An error occurred while generating the PDF. Please try again.');
     }
-  }, [cvData, downloadFile]);
+  }, [cvData]);
 
   const exportJSON = useCallback(() => {
     const json = JSON.stringify(cvData, null, 2);
