@@ -83,7 +83,12 @@ const CVBuilder = () => {
 
   const generatePDF = useCallback(async () => {
     try {
-      const response = await fetch(`/api/generate-pdf`, {
+      let prefix = '';
+      if (window.location.origin === 'http://localhost:3000') {
+        prefix = 'http://localhost';
+      }
+
+      const response = await fetch(`${prefix}/api/generate-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
