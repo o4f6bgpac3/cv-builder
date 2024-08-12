@@ -1,10 +1,11 @@
 # Build frontend
 FROM node:18-alpine AS frontend-builder
 WORKDIR /app
+RUN npm install -g pnpm
 COPY frontend/package*.json ./
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 COPY frontend/ ./
-RUN npm run build
+RUN pnpm build
 
 # Build backend
 FROM golang:1.22.5-alpine AS backend-builder
@@ -15,7 +16,7 @@ COPY *.go ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags="-w -s" -o /cv-builder
 
 # Final stage
-FROM alpine:latest
+FROM alpine:3.18
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=backend-builder /cv-builder ./
