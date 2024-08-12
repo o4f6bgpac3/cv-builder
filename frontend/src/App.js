@@ -9,8 +9,6 @@ import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
 
 library.add(faCircleCheck);
 
-const API_URL = process.env.API_URL || 'http://localhost';
-
 const CVBuilder = () => {
   const [cvData, setCvData] = useState({
     name: '',
@@ -279,8 +277,7 @@ const CVBuilder = () => {
   const generatePDF = useCallback(async () => {
     const html = generateHTML();
     try {
-      console.log(`${API_URL}`);
-      const response = await fetch(`${API_URL}/api/generate-pdf`, {
+      const response = await fetch(`/api/generate-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -599,3 +596,4 @@ const CVBuilder = () => {
 };
 
 export default CVBuilder;
+
