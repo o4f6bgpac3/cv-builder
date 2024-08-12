@@ -20,8 +20,8 @@ type GeneratePDFRequest struct {
 }
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
-
+	ginMode := getEnv("GIN_MODE", "debug")
+	gin.SetMode(ginMode)
 	r := gin.Default()
 
 	config := cors.DefaultConfig()
@@ -44,9 +44,8 @@ func main() {
 		}
 	})
 
-	port := getEnv("PORT", "80")
-	log.Printf("Server starting on port %s", port)
-	if err := r.Run(":" + port); err != nil {
+	log.Printf("Server starting on port %d", 80)
+	if err := r.Run(":80"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
