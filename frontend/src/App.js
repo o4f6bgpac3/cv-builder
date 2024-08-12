@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -8,6 +8,7 @@ import {
   IconButton,
   Paper,
   Grid,
+  Link,
   List,
   ListItem,
   ListItemText,
@@ -20,7 +21,7 @@ import {
 import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
-import { DownloadIcon } from 'lucide-react';
+import { DownloadIcon, ShareIcon } from 'lucide-react';
 
 library.add(faCircleCheck);
 
@@ -34,8 +35,17 @@ const CVBuilder = () => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [openPdfDialog, setOpenPdfDialog] = useState(false);
   const iframeRef = useRef(null);
-
+  const [isMobile, setIsMobile] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleChange = useCallback((section, index, field, value) => {
     setCvData(prev => {
@@ -108,9 +118,11 @@ const CVBuilder = () => {
       }
 
       const response = await fetch(`${prefix}/api/generate-pdf`, {
-        method: 'POST', headers: {
+        method: 'POST',
+        headers: {
           'Content-Type': 'application/json',
-        }, body: JSON.stringify(cvData),
+        },
+        body: JSON.stringify(cvData),
       });
 
       if (response.ok) {
@@ -133,12 +145,35 @@ const CVBuilder = () => {
   };
 
   const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const fileName = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
+
+    if (isMobile) {
+      // For mobile, open in a new tab
+      window.open(pdfUrl, '_blank');
+    } else {
+      // For desktop, trigger download
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `${cvData.name}'s CV`,
+        text: `${cvData.name} CV`,
+        url: pdfUrl,
+      }).then(() => {
+        console.log('Thanks for sharing!');
+      })
+        .catch(console.error);
+    } else {
+      alert('Sharing is not supported on this browser. You can download the PDF and share it manually.');
+    }
   };
 
   const exportJSON = useCallback(() => {
@@ -389,15 +424,34 @@ const CVBuilder = () => {
         </Button>
       </Paper>
 
-      <Box display="flex" mt={4}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={generatePDF}
-          sx={{ mr: 2 }}
-        >
-          Preview
-        </Button>
+      <Box display="flex" mt={4} justifyContent='space-between'>
+        {isMobile ? (
+          <Link
+            href={pdfUrl}
+            download={`${cvData.name.replace(/\s+/g, '_')}_CV.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button startIcon={<DownloadIcon />} variant='contained'>
+              Download PDF
+            </Button>
+            {navigator.share && (
+              <Button startIcon={<ShareIcon />} onClick={handleShare} sx={{ ml: 1 }}>
+                Share
+              </Button>
+            )}
+          </Link>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={generatePDF}
+            sx={{ mr: 2 }}
+          >
+            Preview
+          </Button>
+        )}
+
         <Button
           variant="contained"
           color="secondary"
@@ -415,9 +469,29 @@ const CVBuilder = () => {
         <DialogTitle>
           <Box display="flex" justifyContent="space-between">
             <Box>Your CV Preview</Box>
-            <Button startIcon={<DownloadIcon />} onClick={handleDownload} color="secondary" variant="contained">
-              Download
-            </Button>
+            {isMobile ? (
+              <Link
+                href={pdfUrl}
+                download={`${cvData.name.replace(/\s+/g, '_')}_CV.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button startIcon={<DownloadIcon />}>
+                  Open PDF
+                </Button>
+                {navigator.share && (
+                  <Button startIcon={<ShareIcon />} onClick={handleShare} sx={{ ml: 1 }}>
+                    Share
+                  </Button>
+                )}
+              </Link>
+            ) : (
+              <>
+                <Button startIcon={<DownloadIcon />} onClick={handleDownload} color="secondary" variant="contained">
+                  Download
+                </Button>
+              </>
+            )}
           </Box>
         </DialogTitle>
         <DialogContent>
