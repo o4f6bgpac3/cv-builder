@@ -81,6 +81,18 @@ const CVBuilder = () => {
     });
   }, []);
 
+  const downloadFile = useCallback((content, fileName, contentType) => {
+    const blob = new Blob([content], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, []);
+
   const generatePDF = useCallback(async () => {
     try {
       let prefix = '';
@@ -98,14 +110,7 @@ const CVBuilder = () => {
 
       if (response.ok) {
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'cv.pdf';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
+        downloadFile(blob, 'cv.pdf', 'application/pdf');
       } else {
         console.error('Failed to generate PDF:', response.statusText);
         alert('Failed to generate PDF. Please try again.');
@@ -114,26 +119,13 @@ const CVBuilder = () => {
       console.error('Error generating PDF:', error);
       alert('An error occurred while generating the PDF. Please try again.');
     }
-  }, [cvData]);
-
-  const downloadFile = (content, fileName, contentType) => {
-    const blob = new Blob([content], { type: contentType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  }, [cvData, downloadFile]);
 
   const exportJSON = useCallback(() => {
     const json = JSON.stringify(cvData, null, 2);
     const baseName = cvData.name.replace(/\s+/g, '_');
-  
     downloadFile(json, `${baseName}_CV_data.json`, 'application/json');
-  }, [cvData]);
+  }, [cvData, downloadFile]);
 
   const importJSON = useCallback((event) => {
     const file = event.target.files[0];
