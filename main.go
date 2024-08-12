@@ -1,12 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
-	"io"
 	"log"
-	"mime/multipart"
-	"net/http"
 	"os"
 	"strings"
 
@@ -15,8 +10,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type GeneratePDFRequest struct {
-	HTML string `json:"html"`
+type CVData struct {
+	Name       string   `json:"name"`
+	Address    string   `json:"address"`
+	Phone1     string   `json:"phone1"`
+	Phone2     string   `json:"phone2"`
+	Email      string   `json:"email"`
+	Statement  string   `json:"statement"`
+	Skills     []string `json:"skills"`
+	Experience []struct {
+		Title   string   `json:"title"`
+		Company string   `json:"company"`
+		Period  string   `json:"period"`
+		Duties  []string `json:"duties"`
+	} `json:"experience"`
+	Interests []string `json:"interests"`
 }
 
 func main() {
@@ -47,94 +55,6 @@ func main() {
 	log.Printf("Server starting on port %d", 80)
 	if err := r.Run(":80"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
-	}
-}
-
-func generatePDF(c *gin.Context) {
-	var req GeneratePDFRequest
-	if err := c.BindJSON(&req); err != nil {
-		log.Printf("Error binding JSON: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-		return
-	}
-
-	if req.HTML == "" {
-		log.Print("Error: HTML content is empty")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "HTML content is required"})
-		return
-	}
-
-	// Send HTML to Gotenberg
-	gotenbergURL := getEnv("GOTENBERG_URL", "http://gotenberg:3000")
-	gotenbergEndpoint := fmt.Sprintf("%s/forms/chromium/convert/html", gotenbergURL)
-	payload := &bytes.Buffer{}
-	writer := multipart.NewWriter(payload)
-
-	// Create a form file for index.html
-	part, err := writer.CreateFormFile("files", "index.html")
-	if err != nil {
-		log.Printf("Error creating form file: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to prepare request for Gotenberg"})
-		return
-	}
-
-	// Write the HTML content to the form file
-	_, err = part.Write([]byte(req.HTML))
-	if err != nil {
-		log.Printf("Error writing HTML to form file: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to prepare request for Gotenberg"})
-		return
-	}
-
-	if err := writer.Close(); err != nil {
-		log.Printf("Error closing multipart writer: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to finalize request for Gotenberg"})
-		return
-	}
-
-	gotenbergReq, err := http.NewRequest("POST", gotenbergEndpoint, payload)
-	if err != nil {
-		log.Printf("Error creating request for Gotenberg: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request for Gotenberg"})
-		return
-	}
-	gotenbergReq.Header.Set("Content-Type", writer.FormDataContentType())
-
-	client := &http.Client{}
-	resp, err := client.Do(gotenbergReq)
-	if err != nil {
-		log.Printf("Error sending request to Gotenberg: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Gotenberg"})
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		log.Printf("Gotenberg returned non-OK status: %d, Body: %s", resp.StatusCode, string(bodyBytes))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Gotenberg returned non-OK status: %d", resp.StatusCode)})
-		return
-	}
-
-	// Read the entire response body
-	pdfBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("Error reading PDF from Gotenberg response: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read PDF from Gotenberg"})
-		return
-	}
-
-	// Set headers for PDF download
-	c.Header("Content-Disposition", "attachment; filename=cv.pdf")
-	c.Header("Content-Type", "application/pdf")
-	c.Header("Content-Length", fmt.Sprintf("%d", len(pdfBytes)))
-
-	// Write PDF bytes to response
-	_, err = c.Writer.Write(pdfBytes)
-	if err != nil {
-		log.Printf("Error writing PDF to response: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send PDF to client"})
-		return
 	}
 }
 

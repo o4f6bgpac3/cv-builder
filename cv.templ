@@ -1,0 +1,209 @@
+package main
+
+import "strings"
+
+templ cvTemplate(data CVData) {
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{ data.Name } - CV</title>
+        <style>
+          @font-face {
+            font-family: 'FontAwesome';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2') format('woff2'),
+                 url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.ttf') format('truetype');
+          }
+
+          .fas {
+            font-family: 'FontAwesome';
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-font-smoothing: antialiased;
+            display: inline-block;
+            font-style: normal;
+            font-variant: normal;
+            text-rendering: auto;
+            line-height: 1;
+          }
+
+          .fa-circle-check:before {
+            content: "\f058";
+          }
+
+          html {
+            margin: 1rem;
+          }
+          body {
+            font-family: Arial, sans-serif;
+          }
+          section {
+            margin-top: .75rem;
+            text-align: justify;
+            border-radius: 1.5rem;
+            background-color: #f8f8f8;
+            padding: 0 1rem 1rem 1rem;
+            justify-content: flex-start;
+            border: 2px solid gold;
+          }
+          #contact {
+            display: flex;
+            justify-content: flex-start;
+            background: #fff;
+            padding-bottom: 0;
+            border: none;
+          }
+          #contact #name {
+            display: flex;
+            line-height: 0.85;
+            margin: 0;
+            padding: 0;
+            font-size: 3rem;
+            font-weight: bold;
+          }
+          #contact #address {
+            margin-left: auto;
+            text-align: end;
+            justify-content: flex-start;
+            margin-top: 0;
+          }
+          .no-break {
+            page-break-inside: avoid;
+          }
+          h2 {
+            margin-top: 0;
+            margin-bottom: .25rem;
+          }
+          .interests > div,
+          #skills > div,
+          .indent {
+            padding: .25rem;
+          }
+          i {
+            width: 20px;
+            margin-right: .5rem;
+          }
+          .title {
+            text-decoration: underline;
+            margin-bottom: .5rem;
+          }
+          .indent {
+            margin-left: 1.5rem;
+          }
+          .ps-2 {
+            padding-top: .5rem;
+          }
+          .pe-0 {
+            padding-bottom: 0;
+          }
+          .mt-2 {
+            margin-top: .5rem;
+          }
+          .mb-1 {
+            margin-bottom: .25rem;
+          }
+          .fa-circle-check {
+            color: limegreen;
+          }
+          @page {
+            size: A4;
+            margin: 0;
+          }
+          /* Ensure Key Skills and Professional Experience start on a new page if they don't fit */
+          #skills, .experience {
+            page-break-before: auto;
+          }
+          @media print {
+            .no-break {
+              page-break-inside: avoid;
+              padding-top: 20px;
+            }
+
+            .no-break > *:first-child {
+              margin-top: 0;
+            }
+
+            @page {
+              margin-top: 20px;
+            }
+
+            .experience > div {
+              margin-bottom: 20px;
+            }
+
+            body {
+              font-size: 12pt;
+            }
+
+            h2 {
+              margin-top: 20px;
+            }
+          }
+
+          .experience > div {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 15px;
+          }
+
+          .experience div > span {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+          }
+        </style>
+	</head>
+	<body>
+		<section id="contact">
+			<div id="name">{ data.Name }</div>
+			<div id="address">
+				<div>{ data.Address }</div>
+				<div>{ data.Phone1 }</div>
+				<div>{ data.Phone2 }</div>
+				<div>{ data.Email }</div>
+			</div>
+		</section>
+
+		<section id="statement">
+			<h2>Personal Statement</h2>
+            for _, line := range strings.Split(data.Statement, "\n") {
+                <div>{ line }</div>
+            }
+		</section>
+
+		<section id="skills">
+			<h2>Key Skills</h2>
+			<div>
+				for _, skill := range data.Skills {
+					<div><i class="fas fa-circle-check"></i>{ skill }</div>
+				}
+			</div>
+		</section>
+
+		<section class="experience">
+			<h2>Professional Experience</h2>
+			for _, exp := range data.Experience {
+				<div>
+					<h3>{ exp.Title }</h3>
+					<p>{ exp.Company } - { exp.Period }</p>
+					<ul>
+						for _, duty := range exp.Duties {
+							<li>{ duty }</li>
+						}
+					</ul>
+				</div>
+			}
+		</section>
+
+		<section>
+			<h2>Personal Interests</h2>
+			<ul>
+				for _, interest := range data.Interests {
+					<li>{ interest }</li>
+				}
+			</ul>
+		</section>
+	</body>
+	</html>
+}

@@ -17,4 +17,4 @@ services:
     container_name: gotenberg
     image: gotenberg/gotenberg:7
     ports:
-      - "3000:3000"
+      - "3010:3000"

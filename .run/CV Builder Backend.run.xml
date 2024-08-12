@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CV Builder Backend" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="cv-builder" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="ALLOWED_ORIGINS" value="http://localhost:3000" />
+      <env name="GOTENBERG_URL" value="http://localhost:3010" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/o4f6bgpac3/cv-builder" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/main.go" />
+    <method v="2" />
+  </configuration>
+</component>
