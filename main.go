@@ -39,13 +39,10 @@ func main() {
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept"}
 	r.Use(cors.New(config))
 
-	// Serve static files from the build directory
 	r.Use(static.Serve("/", static.LocalFile("./build", false)))
 
-	// Setup routes
 	setupRoutes(r)
 
-	// Handle React Router
 	r.NoRoute(func(c *gin.Context) {
 		if _, err := os.Stat("./build" + c.Request.URL.Path); os.IsNotExist(err) {
 			c.File("./build/index.html")
@@ -68,4 +65,6 @@ func getEnv(key, fallback string) string {
 func setupRoutes(r *gin.Engine) {
 	r.POST("/api/generate-pdf", generatePDF)
 	r.GET("/download-pdf/:filename", downloadPDF)
+	r.POST("/api/export-json", exportJSON)
+	r.GET("/download-json/:filename", downloadJSON)
 }

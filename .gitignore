@@ -3,4 +3,4 @@ cv-builder
 .env*
 !.env.example
 .DS_Store
-temp_pdfs
+.temp

@@ -39,6 +39,7 @@ const CVBuilder = () => {
   const [pdfBlob, setPdfBlob] = useState(null);
   const [openPdfDialog, setOpenPdfDialog] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isExportingJSON, setIsExportingJSON] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const iframeRef = useRef(null);
 
@@ -102,37 +103,67 @@ const CVBuilder = () => {
     });
   }, []);
 
-  const generatePDF = useCallback(async () => {
+  const handleClosePdfDialog = () => {
+    setOpenPdfDialog(false);
+    setIsGeneratingPDF(false);
+  };
+
+  const handleDownload = (href, fileName) => {
+    if (href) {
+      const link = document.createElement('a');
+      link.href = href;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert(`Unable to download ${fileName}. Please try again.`);
+    }
+  };
+
+  const handleMobileDownload = (href, fileName) => {
+    const newWindow = window.open(href, '_blank');
+
+    if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+      const link = document.createElement('a');
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.href = href;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const getResponse = useCallback(async (url) => {
     try {
-      setIsGeneratingPDF(true);
       let prefix = '';
       if (window.location.origin === 'http://localhost:3000') {
         prefix = 'http://localhost';
       }
 
-      const response = await fetch(`${prefix}/api/generate-pdf`, {
+      return await fetch(`${prefix}${url}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(cvData),
       });
+    } catch (error) {
+      console.error('Failed to get response:', error);
+      alert('Failed to get response from server. Please try again.');
+    }
+  }, [cvData]);
 
+  const generatePDF = useCallback(async () => {
+    try {
+      setIsGeneratingPDF(true);
+      const response = await getResponse('/api/generate-pdf');
       if (response.ok) {
         const data = await response.json();
         if (isMobile) {
-          const newWindow = window.open(data.download_link, '_blank');
-
-          if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-            const link = document.createElement('a');
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.href = data.download_link;
-            link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }
+          handleMobileDownload(data.download_link, `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`);
         } else {
           const pdfContent = `data:application/pdf;base64,${data.pdf_preview}`;
           setPdfBlob(pdfContent);
@@ -145,39 +176,37 @@ const CVBuilder = () => {
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('An error occurred while generating the PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
     }
-  }, [cvData, isMobile]);
+  }, [cvData, isMobile, getResponse]);
 
-  const handleClosePdfDialog = () => {
-    setOpenPdfDialog(false);
-    setIsGeneratingPDF(false);
-  };
-
-  const handleDownload = () => {
-    if (pdfBlob) {
-      const link = document.createElement('a');
-      link.href = pdfBlob;
-      link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      alert('Unable to download PDF. Please try generating it again.');
+  const exportJSON = useCallback(async () => {
+    try {
+      setIsExportingJSON(true);
+      const response = await getResponse('/api/export-json');
+      if (response.ok) {
+        const data = await response.json();
+        if (isMobile) {
+          handleMobileDownload(data.download_link, `${cvData.name.replace(/\s+/g, '_')}_CV_data.json`);
+        } else {
+          let prefix = '';
+          if (window.location.origin === 'http://localhost:3000') {
+            prefix = 'http://localhost';
+          }
+          handleDownload(`${prefix}${data.download_link}`, `${cvData.name.replace(/\s+/g, '_')}_CV_data.json`);
+        }
+      } else {
+        console.error('Failed to export JSON:', response.statusText);
+        alert('Failed to export JSON. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error exporting JSON:', error);
+      alert('An error occurred while exporting JSON. Please try again.');
+    } finally {
+      setIsExportingJSON(false);
     }
-  };
-
-  const exportJSON = useCallback(() => {
-    const json = JSON.stringify(cvData, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${cvData.name.replace(/\s+/g, '_')}_CV_data.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [cvData]);
+  }, [cvData, isMobile, getResponse]);
 
   const importJSON = useCallback((event) => {
     const file = event.target.files[0];
@@ -430,7 +459,7 @@ const CVBuilder = () => {
             variant="contained"
             color="primary"
             onClick={generatePDF}
-            disabled={isGeneratingPDF}
+            disabled={isGeneratingPDF || isExportingJSON}
             sx={{ mr: 2 }}
           >
             {isGeneratingPDF ? 'Generating...' : (isMobile ? 'Download PDF' : 'Preview PDF')}
@@ -439,6 +468,7 @@ const CVBuilder = () => {
             variant="contained"
             color="secondary"
             onClick={exportJSON}
+            disabled={isGeneratingPDF || isExportingJSON}
           >
             Export Data (JSON)
           </Button>
@@ -455,7 +485,7 @@ const CVBuilder = () => {
                 <Typography variant="h6">Your CV Preview</Typography>
                 <Button
                   startIcon={<DownloadIcon />}
-                  onClick={handleDownload}
+                  onClick={() => handleDownload(pdfBlob, `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`)}
                   variant="contained"
                   color="primary"
                 >
