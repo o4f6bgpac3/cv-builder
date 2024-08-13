@@ -16,6 +16,6 @@ FROM alpine:3.18
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=backend-builder /cv-builder ./
-COPY --from=frontend-builder /app/build ./build
+COPY --from=frontend-builder /app/dist ./dist
 EXPOSE 8080
 CMD ["./cv-builder"]
