@@ -37,7 +37,6 @@ const CVBuilder = () => {
   });
 
   const [pdfBlob, setPdfBlob] = useState(null);
-  const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
   const [openPdfDialog, setOpenPdfDialog] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -121,10 +120,13 @@ const CVBuilder = () => {
 
       if (response.ok) {
         const data = await response.json();
-        const pdfContent = `data:application/pdf;base64,${data.pdf_preview}`;
-        setPdfBlob(pdfContent);
-        setPdfPreviewUrl(data.download_link);
-        setOpenPdfDialog(true);
+        if (isMobile) {
+          window.open(data.download_link, '_blank');
+        } else {
+          const pdfContent = `data:application/pdf;base64,${data.pdf_preview}`;
+          setPdfBlob(pdfContent);
+          setOpenPdfDialog(true);
+        }
       } else {
         console.error('Failed to generate PDF:', response.statusText);
         alert('Failed to generate PDF. Please try again.');
@@ -133,7 +135,7 @@ const CVBuilder = () => {
       console.error('Error generating PDF:', error);
       alert('An error occurred while generating the PDF. Please try again.');
     }
-  }, [cvData]);
+  }, [cvData, isMobile]);
 
   const handleClosePdfDialog = () => {
     setOpenPdfDialog(false);
@@ -141,9 +143,7 @@ const CVBuilder = () => {
   };
 
   const handleDownload = () => {
-    if (isMobile && pdfPreviewUrl) {
-      window.open(pdfPreviewUrl, '_blank');
-    } else if (!isMobile && pdfBlob) {
+    if (pdfBlob) {
       const link = document.createElement('a');
       link.href = pdfBlob;
       link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
@@ -433,42 +433,44 @@ const CVBuilder = () => {
           </Button>
         </Box>
 
-        <Dialog
-          open={openPdfDialog}
-          onClose={handleClosePdfDialog}
-          fullScreen
-        >
-          <DialogTitle>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="h6">Your CV Preview</Typography>
-              <Button
-                startIcon={<DownloadIcon />}
-                onClick={handleDownload}
-                variant="contained"
-                color="primary"
-              >
-                Download PDF
+        {!isMobile && (
+          <Dialog
+            open={openPdfDialog}
+            onClose={handleClosePdfDialog}
+            fullScreen
+          >
+            <DialogTitle>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6">Your CV Preview</Typography>
+                <Button
+                  startIcon={<DownloadIcon />}
+                  onClick={handleDownload}
+                  variant="contained"
+                  color="primary"
+                >
+                  Download PDF
+                </Button>
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Box
+                component="iframe"
+                src={pdfBlob}
+                sx={{
+                  width: '100%',
+                  height: '98%',
+                  border: 'none',
+                }}
+                title={`${cvData.name}'s CV`}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClosePdfDialog} color="secondary" variant="contained" sx={{ mb: 1, mr: 2 }}>
+                Close Preview
               </Button>
-            </Box>
-          </DialogTitle>
-          <DialogContent>
-            <Box
-              component="iframe"
-              src={pdfBlob}
-              sx={{
-                width: '100%',
-                height: '98%',
-                border: 'none',
-              }}
-              title={`${cvData.name}'s CV`}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClosePdfDialog} color="secondary" variant="contained" sx={{ mb: 1, mr: 2 }}>
-              Close Preview
-            </Button>
-          </DialogActions>
-        </Dialog>
+            </DialogActions>
+          </Dialog>
+        )}
       </Box>
     </Container>
   );
