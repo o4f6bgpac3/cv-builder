@@ -42,8 +42,8 @@ func main() {
 	// Serve static files from the build directory
 	r.Use(static.Serve("/", static.LocalFile("./build", false)))
 
-	// API routes
-	r.POST("/api/generate-pdf", generatePDF)
+	// Setup routes
+	setupRoutes(r)
 
 	// Handle React Router
 	r.NoRoute(func(c *gin.Context) {
@@ -63,4 +63,9 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func setupRoutes(r *gin.Engine) {
+	r.POST("/api/generate-pdf", generatePDF)
+	r.GET("/download-pdf/:filename", downloadPDF)
 }
