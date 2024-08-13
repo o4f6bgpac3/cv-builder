@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Remove as RemoveIcon, Download as DownloadIcon } from '@mui/icons-material';
 
+
 const CVBuilder = () => {
   const [cvData, setCvData] = useState({
     name: '',
@@ -139,7 +140,7 @@ const CVBuilder = () => {
   const getResponse = useCallback(async (url) => {
     try {
       let prefix = '';
-      if (window.location.origin === 'http://localhost:3000') {
+      if (window.location.origin === 'http://localhost:3000' || window.location.origin === 'http://localhost:5173') {
         prefix = 'http://localhost';
       }
 
@@ -191,7 +192,7 @@ const CVBuilder = () => {
           handleMobileDownload(data.download_link, `${cvData.name.replace(/\s+/g, '_')}_CV_data.json`);
         } else {
           let prefix = '';
-          if (window.location.origin === 'http://localhost:3000') {
+          if (window.location.origin === 'http://localhost:3000' || window.location.origin === 'http://localhost:5173') {
             prefix = 'http://localhost';
           }
           handleDownload(`${prefix}${data.download_link}`, `${cvData.name.replace(/\s+/g, '_')}_CV_data.json`);
