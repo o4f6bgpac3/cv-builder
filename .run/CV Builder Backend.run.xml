@@ -3,7 +3,7 @@
     <module name="cv-builder" />
     <working_directory value="$PROJECT_DIR$" />
     <envs>
-      <env name="ALLOWED_ORIGINS" value="http://localhost:3000" />
+      <env name="ALLOWED_ORIGINS" value="http://localhost:3000,http://localhost:5173" />
       <env name="GOTENBERG_URL" value="http://localhost:3010" />
     </envs>
     <kind value="PACKAGE" />
