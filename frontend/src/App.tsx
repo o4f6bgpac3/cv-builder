@@ -489,17 +489,12 @@ const CVBuilder: React.FC = () => {
                     fullWidth
                     label={`Skill ${index + 1}`}
                     value={skill}
-                    onChange={(e) =>
-                      setCvData({
-                        ...cvData,
-                        skills: cvData.skills.map((s, i) => (i === index ? e.target.value : s)),
-                      })
-                    }
+                    onChange={(e) => handleChange('skills', index, null, e.target.value)}
                   />
                 }
               />
             ))}
-          <Button startIcon={<AddIcon />} onClick={() => cvData.skills.push()} variant='outlined'>
+          <Button startIcon={<AddIcon />} onClick={() => addField('skills')} variant='outlined'>
             Add Skill
           </Button>
         </Paper>
