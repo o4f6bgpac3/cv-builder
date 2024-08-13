@@ -125,6 +125,8 @@ const CVBuilder = () => {
 
           if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
             const link = document.createElement('a');
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
             link.href = data.download_link;
             link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
             document.body.appendChild(link);
