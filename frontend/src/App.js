@@ -21,6 +21,7 @@ import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
 import { DownloadIcon } from 'lucide-react';
+import { saveAs } from 'file-saver';
 
 library.add(faCircleCheck);
 
@@ -127,15 +128,8 @@ const CVBuilder = () => {
         setPdfBlob(blob);
 
         if (isMobile) {
-          // For mobile, trigger download immediately
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
+          // For mobile, trigger download immediately using FileSaver
+          saveAs(blob, `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`);
         } else {
           // For desktop, show preview
           const url = window.URL.createObjectURL(blob);
@@ -156,14 +150,7 @@ const CVBuilder = () => {
 
   const handleDownload = useCallback(() => {
     if (pdfBlob) {
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      saveAs(pdfBlob, `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`);
     }
   }, [pdfBlob, cvData.name]);
 
