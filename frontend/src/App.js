@@ -123,7 +123,7 @@ const CVBuilder = () => {
         if (isMobile) {
           // window.open(data.download_link, '_blank');
           const link = document.createElement('a');
-          link.href = pdfBlob;
+          link.href = data.download_link;
           link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
           document.body.appendChild(link);
           link.click();
