@@ -8,7 +8,6 @@ import {
   IconButton,
   Paper,
   Grid,
-  Link,
   List,
   ListItem,
   ListItemText,
@@ -32,11 +31,12 @@ const CVBuilder = () => {
     }], interests: [''],
   });
 
-  const [pdfPreview, setPdfPreview] = useState(null);
+  const [pdfBlob, setPdfBlob] = useState(null);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
   const [openPdfDialog, setOpenPdfDialog] = useState(false);
-  const iframeRef = useRef(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const fileInputRef = useRef(null);
+  const iframeRef = useRef(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -108,6 +108,7 @@ const CVBuilder = () => {
 
   const generatePDF = useCallback(async () => {
     try {
+      setIsGeneratingPDF(true);
       let prefix = '';
       if (window.location.origin === 'http://localhost:3000') {
         prefix = 'http://localhost';
@@ -122,11 +123,25 @@ const CVBuilder = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const pdfPreview = `data:application/pdf;base64,${data.pdf}`;
-        setPdfPreview(pdfPreview);
+        const blob = await response.blob();
+        setPdfBlob(blob);
 
-        setOpenPdfDialog(true);
+        if (isMobile) {
+          // For mobile, trigger download immediately
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        } else {
+          // For desktop, show preview
+          const url = window.URL.createObjectURL(blob);
+          setPdfPreviewUrl(url);
+          setOpenPdfDialog(true);
+        }
       } else {
         console.error('Failed to generate PDF:', response.statusText);
         alert('Failed to generate PDF. Please try again.');
@@ -134,20 +149,32 @@ const CVBuilder = () => {
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('An error occurred while generating the PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
     }
-  }, [cvData]);
+  }, [cvData, isMobile]);
 
-  const handleClosePdfDialog = () => {
+  const handleDownload = useCallback(() => {
+    if (pdfBlob) {
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }
+  }, [pdfBlob, cvData.name]);
+
+  const handleClosePdfDialog = useCallback(() => {
     setOpenPdfDialog(false);
-  };
-
-  const handleDownload = () => {
-    const fileName = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
-    const link = document.createElement('a');
-    link.href = pdfPreview;
-    link.download = fileName;
-    link.click();
-  };
+    // Clean up the preview URL
+    if (pdfPreviewUrl) {
+      window.URL.revokeObjectURL(pdfPreviewUrl);
+      setPdfPreviewUrl(null);
+    }
+  }, [pdfPreviewUrl]);
 
   const exportJSON = useCallback(() => {
     const json = JSON.stringify(cvData, null, 2);
@@ -182,13 +209,13 @@ const CVBuilder = () => {
           variant="outlined"
           size="small"
           color="info"
-          onClick={() => fileInputRef.current.click()}
+          onClick={() => iframeRef.current.click()}
         >
           Import Data (JSON)
         </Button>
         <input
           type="file"
-          ref={fileInputRef}
+          ref={iframeRef}
           style={{ display: 'none' }}
           accept=".json"
           onChange={importJSON}
@@ -398,27 +425,15 @@ const CVBuilder = () => {
       </Paper>
 
       <Box display="flex" mt={4} justifyContent="space-between">
-        {isMobile ? (
-          <Link
-            href={pdfPreview}
-            download={`${cvData.name.replace(/\s+/g, '_')}_CV.pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button startIcon={<DownloadIcon />} variant="contained">
-              Download PDF
-            </Button>
-          </Link>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={generatePDF}
-            sx={{ mr: 2 }}
-          >
-            Preview
-          </Button>
-        )}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={generatePDF}
+          disabled={isGeneratingPDF}
+          sx={{ mr: 2 }}
+        >
+          {isGeneratingPDF ? 'Generating...' : (isMobile ? 'Download PDF' : 'Preview PDF')}
+        </Button>
 
         <Button
           variant="contained"
@@ -435,38 +450,28 @@ const CVBuilder = () => {
         fullScreen
       >
         <DialogTitle>
-          <Box display="flex" justifyContent="space-between">
-            <Box>Your CV Preview</Box>
-            {isMobile ? (
-              <Link
-                href={pdfPreview}
-                download={`${cvData.name.replace(/\s+/g, '_')}_CV.pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button startIcon={<DownloadIcon />}>
-                  Open PDF
-                </Button>
-              </Link>
-            ) : (
-              <>
-                <Button startIcon={<DownloadIcon />} onClick={handleDownload} color="secondary" variant="contained">
-                  Download
-                </Button>
-              </>
-            )}
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Your CV Preview</Typography>
+            <Button
+              startIcon={<DownloadIcon />}
+              onClick={handleDownload}
+              variant="contained"
+              color="primary"
+            >
+              Download PDF
+            </Button>
           </Box>
         </DialogTitle>
         <DialogContent>
           <iframe
             ref={iframeRef}
-            src={pdfPreview}
-            style={{ width: '100%', height: '100%', border: 'none' }}
-            title={`${cvData.name}'s CV`}
+            src={pdfPreviewUrl}
+            style={{ width: '100%', height: '98%', border: 'none' }}
+            title={`${cvData.name}'s CV Preview`}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClosePdfDialog} color="primary" variant="contained" sx={{ mb: 1, mr: 2 }}>
+          <Button onClick={handleClosePdfDialog} color="secondary" variant='contained' sx={{ mb: 1, mr: 2 }}>
             Close Preview
           </Button>
         </DialogActions>
