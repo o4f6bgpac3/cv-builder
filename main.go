@@ -39,18 +39,24 @@ func main() {
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept"}
 	r.Use(cors.New(config))
 
-	r.Use(static.Serve("/", static.LocalFile("./build", false)))
+	r.Use(static.Serve("/", static.LocalFile("./dist", false)))
 
-	setupRoutes(r)
+	api := r.Group("/api")
+	{
+		api.POST("/generate-pdf", generatePDF)
+		api.POST("/export-json", exportJSON)
+	}
+
+	r.GET("/download-pdf/:filename", downloadPDF)
+	r.GET("/download-json/:filename", downloadJSON)
 
 	r.NoRoute(func(c *gin.Context) {
-		if _, err := os.Stat("./build" + c.Request.URL.Path); os.IsNotExist(err) {
-			c.File("./build/index.html")
-		}
+		c.File("./dist/index.html")
 	})
 
-	log.Printf("Server starting on port %d", 80)
-	if err := r.Run(":80"); err != nil {
+	port := getEnv("PORT", "80")
+	log.Printf("Server starting on port %s", port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
@@ -60,11 +66,4 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
-}
-
-func setupRoutes(r *gin.Engine) {
-	r.POST("/api/generate-pdf", generatePDF)
-	r.GET("/download-pdf/:filename", downloadPDF)
-	r.POST("/api/export-json", exportJSON)
-	r.GET("/download-json/:filename", downloadJSON)
 }
