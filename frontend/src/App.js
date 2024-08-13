@@ -121,13 +121,16 @@ const CVBuilder = () => {
       if (response.ok) {
         const data = await response.json();
         if (isMobile) {
-          // window.open(data.download_link, '_blank');
-          const link = document.createElement('a');
-          link.href = data.download_link;
-          link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          const newWindow = window.open(data.download_link, '_blank');
+
+          if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            const link = document.createElement('a');
+            link.href = data.download_link;
+            link.download = `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
         } else {
           const pdfContent = `data:application/pdf;base64,${data.pdf_preview}`;
           setPdfBlob(pdfContent);
