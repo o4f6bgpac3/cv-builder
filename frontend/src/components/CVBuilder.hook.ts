@@ -169,8 +169,9 @@ export const useCVBuilder = () => {
     async (url: string) => {
       try {
         let prefix = window.location.origin;
-        if (window.location.origin.indexOf(':') > -1) {
-          prefix = window.location.origin.split(':').slice(0, -1).join(':');
+        const u = new URL(window.location.href);
+        if (u.port) {
+          prefix = `${u.protocol}//${u.hostname}`;
         }
 
         return await fetch(`${prefix}${url}`, {
@@ -223,9 +224,11 @@ export const useCVBuilder = () => {
           handleMobileDownload(data.download_link, `${cvData.name.replace(/\s+/g, '_')}_CV_data.json`);
         } else {
           let prefix = window.location.origin;
-          if (window.location.origin.indexOf(':') > -1) {
-            prefix = window.location.origin.split(':').slice(0, -1).join(':');
+          const u = new URL(window.location.href);
+          if (u.port) {
+            prefix = `${u.protocol}//${u.hostname}`;
           }
+
           handleDownload(
             `${prefix}${data.download_link}`,
             `${cvData.name.replace(/\s+/g, '_')}_CV_data.json`
