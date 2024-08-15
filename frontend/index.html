@@ -2,12 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/cv-icon.svg" />
+  <link id="favicon" rel="icon" type="image/svg+xml" href="/cv-icon-light.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CV Builder</title>
 </head>
 <body>
 <div id="root"></div>
 <script type="module" src="./src/main.tsx"></script>
+<script>
+  function updateFavicon() {
+    const favicon = document.getElementById('favicon');
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      favicon.href = '/cv-icon-dark.svg';
+    } else {
+      favicon.href = '/cv-icon-light.svg';
+    }
+  }
+
+  updateFavicon();
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateFavicon);
+</script>
 </body>
 </html>
