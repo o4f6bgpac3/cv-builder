@@ -29,9 +29,14 @@ export const KeySkills: React.FC = () => {
   const section = cvData.skills;
   return (
     <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-      <Typography variant='h5' gutterBottom>
-        Key Skills
-      </Typography>
+      <Box display='flex' justifyContent='space-between'>
+        <Typography variant='h5' alignSelf='center'>
+          Key Skills
+        </Typography>
+        <Button startIcon={<AddIcon />} onClick={() => addField('skills')} variant='outlined'>
+          Add Skill
+        </Button>
+      </Box>
       {cvData.skills.length > 0 && (
         <DragDropContext onDragEnd={(result) => onDragEnd(result, id)}>
           <Droppable droppableId={id}>
@@ -69,9 +74,6 @@ export const KeySkills: React.FC = () => {
           </Droppable>
         </DragDropContext>
       )}
-      <Button startIcon={<AddIcon />} onClick={() => addField('skills')} variant='outlined'>
-        Add Skill
-      </Button>
     </Paper>
   );
 };

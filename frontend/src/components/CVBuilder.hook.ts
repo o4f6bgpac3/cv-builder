@@ -75,12 +75,12 @@ export const useCVBuilder = () => {
       if (section === 'experience' && isNestedArray) {
         return {
           ...prev,
-          [section]: [...prev[section], { title: '', company: '', period: '', duties: [''] }],
+          [section]: [{ title: '', company: '', period: '', duties: [''] }, ...prev[section]],
         };
       } else if (Array.isArray(prev[section])) {
         return {
           ...prev,
-          [section]: [...(prev[section] as string[]), ''],
+          [section]: ['', ...(prev[section] as string[])],
         };
       }
       return prev;
@@ -101,7 +101,7 @@ export const useCVBuilder = () => {
   const addDuty = useCallback((expIndex: number) => {
     setCvData((prev) => {
       const newExperience = [...prev.experience];
-      newExperience[expIndex].duties.push('');
+      newExperience[expIndex].duties.unshift('');
       return { ...prev, experience: newExperience };
     });
   }, []);

@@ -29,9 +29,14 @@ export const PersonalInterests: React.FC = () => {
   const section = cvData.interests;
   return (
     <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-      <Typography variant='h5' gutterBottom>
-        Personal Interests
-      </Typography>
+      <Box display='flex' justifyContent='space-between'>
+        <Typography variant='h5' alignSelf='center'>
+          Personal Interests
+        </Typography>
+        <Button startIcon={<AddIcon />} onClick={() => addField('interests')} variant='outlined'>
+          Add Interest
+        </Button>
+      </Box>
       {cvData.interests.length > 0 && (
         <DragDropContext onDragEnd={(result) => onDragEnd(result, id)}>
           <Droppable droppableId={id}>
@@ -69,9 +74,6 @@ export const PersonalInterests: React.FC = () => {
           </Droppable>
         </DragDropContext>
       )}
-      <Button startIcon={<AddIcon />} onClick={() => addField('interests')} variant='outlined'>
-        Add Interest
-      </Button>
     </Paper>
   );
 };
