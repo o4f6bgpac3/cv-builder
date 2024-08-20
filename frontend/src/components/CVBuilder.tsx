@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Button, Container, Typography, Box, useTheme } from '@mui/material';
+import { Button, Container, Box, useTheme } from '@mui/material';
 import UploadIcon from '@mui/icons-material/Upload';
 import DownloadIcon from '@mui/icons-material/Download';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -43,17 +43,15 @@ const CVBuilder: React.FC = () => {
           },
         }}
       >
-        <Box my={isMobile ? 1 : 4}>
-          <Box display='flex' justifyContent='space-between' mb={2}>
-            <Typography variant='h4' component='h1'>
-              CV Builder
-            </Typography>
+        <Box my={isMobile ? 2 : 4}>
+          <Box display='flex' mb={2} justifyContent={isMobile ? 'flex-start' : 'space-between'}>
             {isMobile ? (
               <Button
                 variant='outlined'
                 size='small'
                 color='secondary'
                 startIcon={<UploadIcon />}
+                sx={{ width: '100%', mx: 1 }}
                 onClick={() => iframeRef.current?.click()}
               >
                 Import
@@ -87,6 +85,7 @@ const CVBuilder: React.FC = () => {
           <Box
             display='flex'
             mt={isMobile ? 2 : 4}
+            mx={isMobile ? 1 : 0}
             flexDirection={isMobile ? 'column-reverse' : 'row'}
             gap={2}
             justifyContent='space-between'
