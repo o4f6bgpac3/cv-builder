@@ -22,19 +22,23 @@ import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useCVBuilder } from './CVBuilder.hook';
 
 export const KeySkills: React.FC = () => {
-  const { cvData } = useStore();
+  const { cvData, isMobile } = useStore();
   const { handleChange, addField } = useCVBuilderContext();
   const { onDragEnd, removeField } = useCVBuilder();
   const id = 'skills';
   const section = cvData.skills;
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+    <Paper elevation={3} sx={{ p: { xs: 1, sm: 3 }, mb: 3 }}>
       <Box display='flex' justifyContent='space-between'>
         <Typography variant='h5' alignSelf='center'>
           Key Skills
         </Typography>
-        <Button startIcon={<AddIcon />} onClick={() => addField('skills')} variant='outlined'>
-          Add Skill
+        <Button
+          startIcon={isMobile ? undefined : <AddIcon />}
+          onClick={() => addField('skills')}
+          variant='outlined'
+        >
+          {isMobile ? <AddIcon /> : 'Add Skill'}
         </Button>
       </Box>
       {cvData.skills.length > 0 && (

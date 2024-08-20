@@ -5,7 +5,7 @@ import { useStore } from './state';
 export const PersonalStatement: React.FC = () => {
   const { cvData, setCvData } = useStore();
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+    <Paper elevation={3} sx={{ p: { xs: 1, sm: 3 }, mb: 3 }}>
       <Typography variant='h5' gutterBottom>
         Personal Statement
       </Typography>

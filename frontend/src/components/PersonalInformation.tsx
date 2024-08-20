@@ -12,7 +12,7 @@ export const PersonalInformation: React.FC = () => {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+    <Paper elevation={3} sx={{ p: { xs: 1, sm: 3 }, mb: 3 }}>
       <Typography variant='h5' gutterBottom>
         Personal Information
       </Typography>

@@ -1,5 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { Button, Container, Typography, Box } from '@mui/material';
+import { Button, Container, Typography, Box, useMediaQuery, useTheme } from '@mui/material';
+import UploadIcon from '@mui/icons-material/Upload';
+import DownloadIcon from '@mui/icons-material/Download';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { CVBuilderProvider } from './CVBuilderContext';
 import { useCVBuilder } from './CVBuilder.hook';
 import { PersonalInformation } from './PersonalInformation';
@@ -14,6 +17,8 @@ const CVBuilder: React.FC = () => {
   const { isExportingJSON, isGeneratingPDF, setIsMobile } = useStore();
   const { exportJSON, generatePDF, isMobile, importJSON } = useCVBuilder();
   const iframeRef = useRef<HTMLInputElement>(null);
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const checkMobile = () => {
@@ -28,20 +33,43 @@ const CVBuilder: React.FC = () => {
 
   return (
     <CVBuilderProvider>
-      <Container maxWidth='md'>
-        <Box my={4}>
+      <Container
+        maxWidth='md'
+        sx={{
+          [theme.breakpoints.only('xs')]: {
+            '&.MuiContainer-root': {
+              paddingLeft: 0,
+              paddingRight: 0,
+            },
+          },
+        }}
+      >
+        <Box my={isMobile ? 1 : 4}>
           <Box display='flex' justifyContent='space-between' mb={2}>
             <Typography variant='h4' component='h1'>
               CV Builder
             </Typography>
-            <Button
-              variant='outlined'
-              size='small'
-              color='info'
-              onClick={() => iframeRef.current?.click()}
-            >
-              Import Data (JSON)
-            </Button>
+            {isMobile ? (
+              <Button
+                variant='outlined'
+                size='small'
+                color='secondary'
+                startIcon={<UploadIcon />}
+                onClick={() => iframeRef.current?.click()}
+              >
+                Import
+              </Button>
+            ) : (
+              <Button
+                variant='outlined'
+                size='small'
+                color='secondary'
+                startIcon={<UploadIcon />}
+                onClick={() => iframeRef.current?.click()}
+              >
+                Import Data (JSON)
+              </Button>
+            )}
             <input
               type='file'
               ref={iframeRef}
@@ -57,20 +85,27 @@ const CVBuilder: React.FC = () => {
           <ProfessionalExperience />
           <PersonalInterests />
 
-          <Box display='flex' mt={4} justifyContent='space-between'>
+          <Box
+            display='flex'
+            mt={isMobile ? 2 : 4}
+            flexDirection={isMobile ? 'column-reverse' : 'row'}
+            gap={2}
+            justifyContent='space-between'
+          >
             <Button
               variant='contained'
               color='primary'
               onClick={generatePDF}
+              startIcon={isMobile ? <AutoAwesomeIcon /> : ''}
               disabled={isGeneratingPDF || isExportingJSON}
-              sx={{ mr: 2 }}
             >
               {isGeneratingPDF ? 'Generating...' : isMobile ? 'Download PDF' : 'Preview PDF'}
             </Button>
             <Button
-              variant='contained'
+              variant='outlined'
               color='secondary'
               onClick={exportJSON}
+              startIcon={<DownloadIcon />}
               disabled={isGeneratingPDF || isExportingJSON}
             >
               Export Data (JSON)

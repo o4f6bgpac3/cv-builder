@@ -12,18 +12,22 @@ import { useCVBuilder } from './CVBuilder.hook';
 import { Duties } from './Duties';
 
 export const ProfessionalExperience: React.FC = () => {
-  const { cvData } = useStore();
+  const { cvData, isMobile } = useStore();
   const { handleChange, addField, removeField } = useCVBuilderContext();
   const { onDragEnd } = useCVBuilder();
   const id = 'experience';
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+    <Paper elevation={3} sx={{ p: { xs: 1, sm: 3 }, mb: 3 }}>
       <Box display='flex' justifyContent='space-between'>
         <Typography variant='h5' alignSelf='center'>
           Professional Experience
         </Typography>
-        <Button startIcon={<AddIcon />} onClick={() => addField('experience', true)} variant='outlined'>
-          Add Experience
+        <Button
+          startIcon={isMobile ? undefined : <AddIcon />}
+          onClick={() => addField('experience', true)}
+          variant='outlined'
+        >
+          {isMobile ? <AddIcon /> : 'Add Experience'}
         </Button>
       </Box>
       {cvData.experience.length > 0 && (

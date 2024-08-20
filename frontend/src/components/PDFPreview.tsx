@@ -7,7 +7,7 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material';
-import { Download as DownloadIcon } from '@mui/icons-material';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import React from 'react';
 import { useCVBuilder } from './CVBuilder.hook';
 import { useStore } from './state';
@@ -28,7 +28,7 @@ export const PDFPreview: React.FC = () => {
         <Box display='flex' justifyContent='space-between' alignItems='center'>
           <Typography variant='h6'>Your CV Preview</Typography>
           <Button
-            startIcon={<DownloadIcon />}
+            startIcon={<AutoAwesomeIcon />}
             onClick={() => handleDownload(pdfBlob, `${cvData.name.replace(/\s+/g, '_')}_CV.pdf`)}
             variant='contained'
             color='primary'

@@ -22,19 +22,23 @@ import { useCVBuilder } from './CVBuilder.hook';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 
 export const PersonalInterests: React.FC = () => {
-  const { cvData } = useStore();
+  const { cvData, isMobile } = useStore();
   const { handleChange, addField } = useCVBuilderContext();
   const { onDragEnd, removeField } = useCVBuilder();
   const id = 'interests';
   const section = cvData.interests;
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+    <Paper elevation={3} sx={{ p: { xs: 1, sm: 3 }, mb: 3 }}>
       <Box display='flex' justifyContent='space-between'>
         <Typography variant='h5' alignSelf='center'>
           Personal Interests
         </Typography>
-        <Button startIcon={<AddIcon />} onClick={() => addField('interests')} variant='outlined'>
-          Add Interest
+        <Button
+          startIcon={isMobile ? undefined : <AddIcon />}
+          onClick={() => addField('interests')}
+          variant='outlined'
+        >
+          {isMobile ? <AddIcon /> : 'Add Interest'}
         </Button>
       </Box>
       {cvData.interests.length > 0 && (
