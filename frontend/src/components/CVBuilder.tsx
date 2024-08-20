@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Button, Container, Typography, Box, useMediaQuery, useTheme } from '@mui/material';
+import { Button, Container, Typography, Box, useTheme } from '@mui/material';
 import UploadIcon from '@mui/icons-material/Upload';
 import DownloadIcon from '@mui/icons-material/Download';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -18,7 +18,6 @@ const CVBuilder: React.FC = () => {
   const { exportJSON, generatePDF, isMobile, importJSON } = useCVBuilder();
   const iframeRef = useRef<HTMLInputElement>(null);
   const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const checkMobile = () => {
@@ -34,7 +33,7 @@ const CVBuilder: React.FC = () => {
   return (
     <CVBuilderProvider>
       <Container
-        maxWidth='md'
+        maxWidth='lg'
         sx={{
           [theme.breakpoints.only('xs')]: {
             '&.MuiContainer-root': {

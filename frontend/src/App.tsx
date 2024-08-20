@@ -5,7 +5,7 @@ import CVBuilder from './components/CVBuilder';
 const App: React.FC = () => {
   return (
     <Container
-      maxWidth='md'
+      maxWidth='lg'
       sx={{
         '&.MuiContainer-root': {
           paddingLeft: { xs: 0, sm: 16 },
